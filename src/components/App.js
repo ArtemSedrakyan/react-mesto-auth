@@ -1,4 +1,5 @@
 import React from "react";
+import { Route, Switch, Redirect, withRouter } from "react-router-dom";
 import Header from "./Header";
 import Main from "./Main";
 import Footer from "./Footer";
@@ -9,6 +10,11 @@ import { api } from "../utils/Api";
 import { CurrentUserContext } from "../contexts/CurrentUserContext";
 import EditAvatarPopup from "./EditAvatatPopup";
 import AddPlacePopup from "./AddPlacePopup";
+import Login from "./Login";
+import Register from "./Register";
+import ProtectedRoute from "./ProtectedRoute";
+import InfoToolTip from "./InfoToolTip";
+import * as mestoAuth from '../utils/mestoAuth';
 
 class App extends React.Component {
   constructor(props) {
@@ -18,9 +24,15 @@ class App extends React.Component {
       isEditAvatarPopupOpen: false,
       isEditProfileOpen: false,
       isAddPlacePopupOpen: false,
+      isInfoToolTipPopupOpen: false,
       selectedCard: { name: "", link: "" },
       currentUser: { },
-      cards: [ ]
+      cards: [ ],
+      loggedIn: false,
+      regStatus: false,
+      checkImage: "",
+      checkMessage: "",
+      userEmailOnHeader: ""
     };
   }
 
@@ -45,6 +57,7 @@ class App extends React.Component {
       isEditAvatarPopupOpen: false,
       isEditProfileOpen: false,
       isAddPlacePopupOpen: false,
+      isInfoToolTipPopupOpen: false,
       selectedCard: { name: "", link: "" },
     });
   };
@@ -60,6 +73,7 @@ class App extends React.Component {
     .catch((err) => {
       console.log(err);
     });
+    this.checkToken();
   };
 
   handleUpdateUser = (data) => {
@@ -144,20 +158,97 @@ class App extends React.Component {
     });
   };
 
+  onRegister = (email, password) => {
+    mestoAuth.register(password, email)
+    .then((res) => {
+      this.setState({isInfoToolTipPopupOpen: true});
+      if (res) {
+        this.setState({regStatus: true})
+        this.props.history.push('/sign-in');
+      }
+    })
+    .catch(() => {
+      this.setState({regStatus: false});
+      this.setState({isInfoToolTipPopupOpen: true});
+    })
+  };
+
+  onLogin = (email, password) => {
+    mestoAuth.authorize(email, password)
+    .then((res) => {
+      if(res) {
+        this.setState({loggedIn: true});
+        this.setState({userEmailOnHeader: email});
+        this.props.history.push('/');
+        localStorage.setItem('jwt', res.token);
+      }
+    })
+    .catch(() => {
+      this.setState({regStatus: false});
+      this.setState({isInfoToolTipPopupOpen: true});
+    })
+  };
+
+  checkToken = () => {
+    const token = localStorage.getItem('jwt');
+    if(token) {
+      mestoAuth.validityToken(token)
+      .then((res) => {
+        if (res) {
+          this.setState({userEmailOnHeader: res.data.email});
+        };
+        this.setState({loggedIn: true})
+        this.props.history.push('/');
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+    }
+  };
+
+  logoutProfile = () => {
+    localStorage.removeItem('jwt');
+    this.props.history.push('/sign-in');
+    this.setState({loggedIn: false})
+  };
+
   render() {
     return (
       <CurrentUserContext.Provider value={this.state.currentUser}>
-        <Header />
-        <Main
-          onEditAvatar={this.handleEditAvatarClick}
-          onEditProfile={this.handleEditProfileClick}
-          onAddPlace={this.handleAddPlaceClick}
-          onCardView={this.handleCardClick}
-          cards={this.state.cards}
-          onCardLike={this.handleCardLike}
-          onCardDelete={this.handleCardDelete}
+        <Header
+          userEmailOnHeader={this.state.userEmailOnHeader}
+          logoutProfile={this.logoutProfile}
         />
-        <Footer />
+        <Switch>
+          <ProtectedRoute
+            exact
+            path="/"
+            loggedIn={this.state.loggedIn}
+            component={Main}
+            onEditAvatar={this.handleEditAvatarClick}
+            onEditProfile={this.handleEditProfileClick}
+            onAddPlace={this.handleAddPlaceClick}
+            onCardView={this.handleCardClick}
+            cards={this.state.cards}
+            onCardLike={this.handleCardLike}
+            onCardDelete={this.handleCardDelete}
+          />
+          <Route path="/sign-up">
+            <Register
+              onRegister={this.onRegister}
+            />
+          </Route>
+          <Route path="/sign-in">
+            <Login
+              onLogin={this.onLogin}
+            />
+          </Route>
+          <Route exact path="/">
+            {this.state.loggedIn ?
+              <Redirect to="/" /> :
+              <Redirect to="/sign-in" />}
+          </Route>
+        </Switch>
         <EditProfilePopup
           isOpen={this.state.isEditProfileOpen}
           onClose={this.closeAllPopups}
@@ -178,9 +269,17 @@ class App extends React.Component {
           onClose={this.closeAllPopups}
           card={this.state.selectedCard}
         />
+        <InfoToolTip
+          isOpen={this.state.isInfoToolTipPopupOpen}
+          onClose={this.closeAllPopups}
+          checkImage={this.state.checkImage}
+          checkMessage={this.state.checkMessage}
+          status={this.state.regStatus}
+        />
+        <Footer />
       </CurrentUserContext.Provider>
     );
   };
 };
 
-export default App;
+export default withRouter(App);
