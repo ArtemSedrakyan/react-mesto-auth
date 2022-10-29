@@ -1,4 +1,4 @@
-export const BASE_URL = 'https://auth.nomoreparties.co';
+export const BASE_URL = 'https://api.sedrakyan.mesto.nomoredomains.icu';
 
 function getResponse(res) {
   if (res.ok) {
@@ -45,3 +45,14 @@ export const validityToken = (token) => {
     return getResponse(res);
   })
 }
+
+export const signOut = async () => {
+  await fetch(`${BASE_URL}/signout`, {
+    headers: {
+      "Content-Type": "application/json"
+    }
+  })
+  .then((res) => {
+    return getResponse(res);
+  })
+};

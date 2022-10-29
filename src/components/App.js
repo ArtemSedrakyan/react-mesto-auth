@@ -206,7 +206,8 @@ class App extends React.Component {
     }
   };
 
-  logoutProfile = () => {
+  logoutProfile = async () => {
+    await mestoAuth.signOut();
     localStorage.removeItem('jwt');
     this.props.history.push('/sign-in');
     this.setState({loggedIn: false})

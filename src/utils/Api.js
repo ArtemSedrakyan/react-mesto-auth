@@ -81,9 +81,8 @@ class Api {
 
 //Создание экземпляра класса с запросами к серверу
 export const api = new Api({
-  baseUrl: "https://mesto.nomoreparties.co/v1/cohort-45",
+  baseUrl: "https://api.sedrakyan.mesto.nomoredomains.icu",
   headers: {
-    authorization: "0e07ca47-16aa-4854-8497-cd212061b1a1",
     "Content-Type": "application/json",
   },
 });
