@@ -133,8 +133,8 @@ useEffect(() => {
     });
   };
 
-  function onRegister(email, password) {
-    mestoAuth.register(password, email)
+  const onRegister = async (email, password) => {
+    await mestoAuth.register(password, email)
     .then((res) => {
       setIsInfoToolTipPopupOpen(true);
       if (res) {
@@ -148,8 +148,8 @@ useEffect(() => {
     })
   };
 
-  function onLogin(email, password) {
-    mestoAuth.authorize(email, password)
+  const onLogin = async (email, password) => {
+    await mestoAuth.authorize(email, password)
     .then((res) => {
       if(res) {
         setLoggedIn(true);
@@ -163,8 +163,8 @@ useEffect(() => {
     })
   };
 
-  function checkToken(token) {
-      mestoAuth.validityToken(token)
+  const checkToken = async (token) => {
+      await mestoAuth.validityToken(token)
       .then((res) => {
         if (res) {
           setUserEmailOnHeader(res.email);
@@ -180,7 +180,7 @@ useEffect(() => {
   const logoutProfile = async () => {
     await mestoAuth.signOut();
     history.push('/sign-in');
-    setLoggedIn(true);
+    setLoggedIn(false);
   };
 
     return (
