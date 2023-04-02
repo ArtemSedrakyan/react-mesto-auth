@@ -2,7 +2,7 @@
 
 Автор: [Артем Седракян](https://github.com/ArtemSedrakyan)
 
-[](./src/images/Mesto.gif)
+[Демо](./src/images/Mesto.gif)
 
 * Сервис Mesto - это интерактивная веб-страница, позволяющая добавлять фотографии, удалять их и ставить лайки.
 
